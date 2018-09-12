@@ -7,11 +7,12 @@ Created on Wed Sep 12 15:03:12 2018
 
 read in decklist and make Deck objects
 """
+import os
 
 class Deck:
     def __init__(self, read_deckfile=None, min_main=60, max_side=15):
-        self.maindeck = {}
-        self.sideboard = {}
+        self._maindeck = {}
+        self._sideboard = {}
         self.min_main = min_main
         self.max_side = max_side
         
@@ -25,7 +26,8 @@ class Deck:
         
         Parameters
         ----------
-        filename: path to decklist file
+        filename: str
+            path to decklist file
         """
         with open(filename, 'r') as f:
             sideboard = False
@@ -49,15 +51,15 @@ class Deck:
                 cardname = vals[1].strip()
                 
                 if sideboard:
-                    if cardname in self.sideboard:
-                        self.sideboard[cardname] += num
+                    if cardname in self._sideboard:
+                        self._sideboard[cardname] += num
                     else:
-                        self.sideboard[cardname] = num
+                        self._sideboard[cardname] = num
                 else:
-                    if cardname in self.maindeck:
-                        self.maindeck[cardname] += num
+                    if cardname in self._maindeck:
+                        self._maindeck[cardname] += num
                     else:
-                        self.maindeck[cardname] = num
+                        self._maindeck[cardname] = num
                         
     def set_decklist(self, maindeck, sideboard):
         """
@@ -76,5 +78,56 @@ class Deck:
             raise ValueError('Maindeck of {} cards does not make minimum of {}'.format(num_main, self.min_main))
         if num_side > self.max_side:
             raise ValueError('Sideboard of {} cards exceeds maximum of {}'.format(num_side, self.max_side))
-        self.maindeck = maindeck
-        self.sideboard = sideboard
+        self._maindeck = maindeck
+        self._sideboard = sideboard
+        
+    def print_decklist(self):
+        """
+        Print decklist to screen
+        """
+        print('Mainboard')
+        for card in self._maindeck:
+            print('{} {}'.format(self._maindeck[card], card))
+        print('\nSidebaord')
+        for card in self._sideboard:
+            print('{} {}'.format(self._sideboard[card], card))
+            
+    def save_decklist(self, savefile):
+        """
+        Save decklist to a file
+        
+        Parameters
+        ----------
+        savefile: str
+            Path to the file to save in
+        """
+        with open(savefile, 'w') as f:
+            for card in self._maindeck:
+                f.write('{} {}\n'.format(self._maindeck[card], card))
+            f.write('\n')
+            for card in self._sideboard:
+                f.write('{} {}\n'.format(self._sideboard[card], card))
+                
+                
+def read_folder(folder, ext='.dck'):
+    """
+    Read in all decklists from a folder
+    
+    Parameters
+    ----------
+    folder: str
+        Path to the directory with decklist files
+    
+    ext: str
+        default = '.dck'
+        Extension of decklist files
+        
+    Returns
+    -------
+    list
+        list with Decks read from folder
+    """
+    file_list = os.listdir(folder)
+    os.chdir(folder)
+    return [Deck(read_deckfile=f) for f in file_list if f.endswith(ext)]
+            
