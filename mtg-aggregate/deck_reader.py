@@ -10,7 +10,7 @@ read in decklist and make Deck objects
 import os
 
 class Deck:
-    def __init__(self, read_deckfile=None, min_main=60, max_side=15):
+    def __init__(self, read_deckfile=None, from_dicts=None, min_main=60, max_side=15):
         self._maindeck = {}
         self._sideboard = {}
         self.min_main = min_main
@@ -18,7 +18,8 @@ class Deck:
         
         if read_deckfile is not None:
             self.read_from_file(read_deckfile)
-        pass
+        if from_dicts is not None:
+            self.set_decklist(*from_dicts)
     
     def read_from_file(self, filename):
         """
