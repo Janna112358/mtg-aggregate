@@ -8,59 +8,59 @@ Created on Wed Sep 12 15:03:12 2018
 read in decklist and make Deck objects
 """
 import os
+from collections import defaultdict
 
 class Deck:
-    def __init__(self, read_deckfile=None, from_dicts=None, min_main=60, max_side=15):
+    def __init__(self, from_dicts=None, min_main=60, max_side=15):
         self._maindeck = {}
         self._sideboard = {}
         self.min_main = min_main
         self.max_side = max_side
         
-        if read_deckfile is not None:
-            self.read_from_file(read_deckfile)
         if from_dicts is not None:
             self.set_decklist(*from_dicts)
     
-    def read_from_file(self, filename):
+    @classmethod
+    def from_file(cls, filename):
         """
         Read in decklist from the given filename
         
         Parameters
         ----------
         filename: str
-            path to decklist file
+            path to the decklist file
         """
+        # create dictionaries that set the value of any key to 0 by default
+        maindeck = defaultdict(int)
+        sideboard = defaultdict(int)
+        
         with open(filename, 'r') as f:
-            sideboard = False
+            
+            # start by reading maindeck, flip to sideboard
+            # if we encounter a newline or the word sideboard
+            read_sideboard = False
             for line in f:
                 if line == '\n' or 'sideboard' in line.lower():
-                    sideboard = True
+                    read_sideboard = True
                     continue
-                
+            
                 # read number of copies and cardname
                 vals = line.split(maxsplit=1)
                 try:
-                    num = int(vals[0])
-                except:
                     if vals[0][-1] == 'x':
-                        try:
-                            num = int(vals[0][:-1])
-                        except:
-                            raise
+                        num = int(vals[0][:-1])
                     else:
-                        raise IOError('Could not read number of cards in line: {}'.format(line))
+                        num = int(vals[0])
+                except ValueError:
+                    raise IOError('Could not read number of cards in line: {!r}'.format(line))
                 cardname = vals[1].strip()
-                
-                if sideboard:
-                    if cardname in self._sideboard:
-                        self._sideboard[cardname] += num
-                    else:
-                        self._sideboard[cardname] = num
+            
+                if read_sideboard:
+                    sideboard[cardname] += num
                 else:
-                    if cardname in self._maindeck:
-                        self._maindeck[cardname] += num
-                    else:
-                        self._maindeck[cardname] = num
+                    maindeck[cardname] += num
+                    
+            return Deck(from_dicts=(maindeck, sideboard))
                         
     def set_decklist(self, maindeck, sideboard):
         """
@@ -110,25 +110,26 @@ class Deck:
                 f.write('{} {}\n'.format(self._sideboard[card], card))
                 
                 
-def read_folder(folder, ext='.dck'):
-    """
-    Read in all decklists from a folder
-    
-    Parameters
-    ----------
-    folder: str
-        Path to the directory with decklist files
-    
-    ext: str
+    @classmethod                
+    def read_folder(cls, folder, ext='.dck'):
+        """
+        Read in all decklists from a folder
+        
+        Parameters
+        ----------
+        folder: str
+            Path to the directory with decklist files
+            
+        ext: str
         default = '.dck'
         Extension of decklist files
         
-    Returns
-    -------
-    list
-        list with Decks read from folder
-    """
-    file_list = os.listdir(folder)
-    os.chdir(folder)
-    return [Deck(read_deckfile=f) for f in file_list if f.endswith(ext)]
-            
+        Returns
+        -------
+        list
+            list with Decks read from folder
+        """
+        file_list = os.listdir(folder)
+        os.chdir(folder)
+        return [cls.from_file(f) for f in file_list if f.endswith(ext)]
+                
