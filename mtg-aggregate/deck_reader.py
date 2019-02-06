@@ -8,7 +8,9 @@ Created on Wed Sep 12 15:03:12 2018
 read in decklist and make Deck objects
 """
 import os
+import io
 from collections import defaultdict
+from glob import glob
 
 class Deck:
     def __init__(self, from_dicts=None, min_main=60, max_side=15):
@@ -82,16 +84,15 @@ class Deck:
         self._maindeck = maindeck
         self._sideboard = sideboard
         
-    def print_decklist(self):
-        """
-        Print decklist to screen
-        """
-        print('Mainboard')
+    def __str__(self):
+        s = io.StringIO()
+        print('Mainboard', file=s)
         for card in self._maindeck:
-            print('{} {}'.format(self._maindeck[card], card))
-        print('\nSidebaord')
+            print('{} {}'.format(self._maindeck[card], card), file=s)
+        print('\nSidebaord', file=s)
         for card in self._sideboard:
-            print('{} {}'.format(self._sideboard[card], card))
+            print('{} {}'.format(self._sideboard[card], card), file=s)
+        return s.getvalue()
             
     def save_decklist(self, savefile):
         """
@@ -129,7 +130,6 @@ class Deck:
         list
             list with Decks read from folder
         """
-        file_list = os.listdir(folder)
-        os.chdir(folder)
-        return [cls.from_file(f) for f in file_list if f.endswith(ext)]
+        deck_files = glob(os.path.join(folder, '*'+ext))
+        return [cls.from_file(f) for f in deck_files]
                 

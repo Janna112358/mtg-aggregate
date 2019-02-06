@@ -8,7 +8,7 @@ Created on Wed Sep 12 15:00:35 2018
 mtg aggreate deck creator
 """
 from random import shuffle
-
+#
 def create_aggregate(decks, save=None, num_main=60, num_side=15, symbol='#'):
     """
     Create the aggregate deck from a list of decks
@@ -115,6 +115,8 @@ def _make_deck_from_count(count_cards, max_occurence, len_decklist):
         list of len_decklist selected aggregate cards (i.e. making the 
         distinction between 'Negate #1' and 'Negate #2')
     """
+    # rewrite using sorted
+    # then take first 60 of sorted items
     agg_deck = []
     while len(agg_deck) < len_decklist:
         space_in_deck = len_decklist - len(agg_deck)
