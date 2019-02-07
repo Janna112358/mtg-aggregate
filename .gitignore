@@ -2,4 +2,4 @@
 *.txt
 *.dck
 *.egg-info
-mtg_agg_web/venv/*
+mtg_agg_web/web_venv/*
